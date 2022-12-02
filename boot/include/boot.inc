@@ -6,10 +6,10 @@ MBR_START_ADDR equ 0x7c00
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; kernel
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-KERNEL_SECTIOR_LENGTH equ 1
+KERNEL_SECTIOR_LENGTH equ 16
 KERNEL_START_SECTIOR equ 5
 KERNEL_LOAD_ADDR equ 0x9f00
-KERNEL_RUN_ADDR equ 0x900
+KERNEL_RUN_ADDR equ 0x7E00
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; loader

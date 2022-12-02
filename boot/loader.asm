@@ -88,7 +88,7 @@ protect_start:
 	mov cr0, eax
 	;设置GDTR
 	lgdt [gdt_ptr]
-	jmp $
+	jmp KERNEL_RUN_ADDR
 
 	;创建页目录（PAGE_DIR_TABLE_POS）以及第一个系统页表（PAGE_DIR_TABLE_POS+0x1000）
 setup_page_table:
