@@ -28,7 +28,7 @@ section mbr vstart=MBR_START_ADDR
 	mov ecx, LOADER_START_SECTIOR
 	call read_disk
 
-	jmp LOADER_START_ADDR
+	jmp LOADER_CODE_ADDR
 
 ; 从磁盘读取数据的函数
 ;    al:读入扇区数

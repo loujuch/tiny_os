@@ -18,6 +18,7 @@ LOADER_START_SECTIOR equ 1
 LOADER_SECTIOR_LENGTH equ 4
 LOADER_START_ADDR equ 0x500
 LOADER_CODE_ADDR equ 0x900
+LOADER_STACK_TOP equ LOADER_START_ADDR
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; GDT
@@ -62,3 +63,14 @@ DESC_LIMIT_DATA2+DESC_P_EXIST+DESC_DPL_0+DESC_S_DATA+DESC_TYPE_DATA+0x00
 
 DESC_VIDEO_HIGH4	equ (0x00<<24)+DESC_G_4K+DESC_D_32+DESC_L_32+DESC_AVL+ \
 DESC_LIMIT_VIDEO2+DESC_P_EXIST+DESC_DPL_0+DESC_S_DATA+DESC_TYPE_DATA+0x0b
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; GDT SELECTOR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+RPL0	equ 00b
+RPL1	equ 01b
+RPL2	equ 10b
+RPL3	equ 11b
+
+TI_GDT	equ 000b
+TI_LDT	equ 100b
