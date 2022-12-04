@@ -125,9 +125,6 @@ void idt_init() {
 	// 初始化PIC
 	pic_init();
 
-	put_uint32(intr_entry_table);
-	put_char('\n');
-
 	// 加载IDT（使用内连汇编）
 	uint64_t idt_ptr = (sizeof(idt) - 1) | (((uint64_t)((int32_t)idt)) << 16);
 	asm volatile("lidt %0"::"m"(idt_ptr));

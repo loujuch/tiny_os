@@ -24,12 +24,13 @@ image: $(IMAGE_NAME).img mbr.bin loader.bin kernel.bin
 	dd if=loader.bin of=test.img bs=$(BLOCK_SIZE) count=$(LOADER_COUNT) seek=$(SEEK) conv=notrunc
 	$(eval SEEK=$(shell echo $$(($(SEEK)+$(LOADER_COUNT)))))
 	dd if=kernel.bin of=test.img bs=$(BLOCK_SIZE) count=$(KERNEL_COUNT) seek=$(SEEK) conv=notrunc
+	$(eval SEEK=$(shell echo $$(($(SEEK)+$(KERNEL_COUNT)))))
 	@echo "当前共使用磁盘空间：$(SEEK)块"
 	@echo "\n使用以下命令运行bochs查看镜像运行结果: \n  bochs -f bochsrc -q"
 
-kernel.bin: kernel/main.c print.o kernel.o interrupt.o init.o
+kernel.bin: kernel/main.c print.o kernel.o interrupt.o init.o timer.o
 	$(CC) kernel/main.c -o main.o
-	$(LINK) main.o print.o kernel.o interrupt.o init.o -o kernel.elf
+	$(LINK) main.o print.o kernel.o interrupt.o init.o timer.o -o kernel.elf
 	$(OBJCOPY) kernel.elf kernel.bin
 
 #编译lib
@@ -39,11 +40,14 @@ print.o: lib/print.asm include/print.h
 kernel.o: lib/kernel.asm
 	$(CASM) -f elf32 -o kernel.o lib/kernel.asm
 
-interrupt.o: lib/interrupt.c include/interrupt.h lib/kernel.asm
+interrupt.o: lib/interrupt.c include/interrupt.h kernel.o
 	$(CC) lib/interrupt.c -o interrupt.o
 
 init.o: lib/init.c include/init.h
 	$(CC) lib/init.c -o init.o
+
+timer.o: lib/timer.c include/timer.h
+	$(CC) lib/timer.c -o timer.o
 
 #生成镜像
 $(IMAGE_NAME).img:
