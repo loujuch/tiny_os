@@ -5,11 +5,58 @@ SELECTOR_VEDIO equ (0x3<<3)+TI_GDT+RPL0
 [bits 32]
 section .text
 global put_char
+global put_str
+global put_colorful_char
+global put_uint32
+global scroll_line
 global cls
 global get_cursor
 global set_cursor
-global put_str
-put_char:
+
+	; 打印32位无符号整数的16进制形式
+put_uint32:
+	push ebx
+	push ecx
+	; 获取输入
+	mov eax, [esp+12]
+	; 设置临时字符串缓冲区
+	sub esp, 11
+	mov byte [esp+10], 0x0
+	; 不断获取低4位进行计算
+	mov ecx, 8
+uint32_to_str:
+	; 获取4位数值
+	mov bl, al
+	and bl, 0xf
+	shr eax, 4
+	; 将4位数值转化为字符
+	cmp bl, 0xa
+	jb is_digit
+	add bl, 55
+	jmp send_char_buffer
+is_digit:
+	add bl, 48
+send_char_buffer:
+	; 将字符送往临时字符串缓冲区
+	mov byte [esp+ecx+1], bl
+	loop uint32_to_str
+	; 设置字符串头部
+	mov byte [esp+1], 'x'
+	mov byte [esp], '0'
+	; 打印字符串
+	mov eax, esp
+	push eax
+	call put_str
+	add esp, 4
+put_uint32_done:
+	; 回收临时字符串缓冲区
+	add esp, 11
+	pop ecx
+	pop ebx
+	ret
+
+	; 打印有特殊颜色的字符
+put_colorful_char:
 	pushad
 	; 初始化gs
 	mov ax, SELECTOR_VEDIO
@@ -41,27 +88,28 @@ put_char:
 
 show_char:
 	; 进行打印
+	mov edx, [esp+40]
 	mov [gs:eax], cl
 	inc eax
-	mov byte [gs:eax], 0x7
+	mov byte [gs:eax], dl
 
 	; 设置下一光标位置
 	shr eax, 1
 	inc eax
 	call set_cursor_value
 
-	jmp put_char_done
+	jmp put_colorful_char_done
 
 is_backspace:
 	; 如果是屏幕上的第一个字符，则无需删除
 	test eax, eax
-	je put_char_done
+	je put_colorful_char_done
 	dec eax
 	mov byte [gs:eax], 0x7
 	dec eax
 	mov byte [gs:eax], 0x0
 	call set_cursor_value
-	jmp put_char_done
+	jmp put_colorful_char_done
 	
 is_carriage_reture:
 is_line_feed:
@@ -78,8 +126,18 @@ set_new_cursor:
 	mul ebx
 	call set_cursor_value
 
-put_char_done:
+put_colorful_char_done:
 	popad
+	ret
+
+	; 打印正常字符
+put_char:
+	mov eax, 0x7
+	push eax
+	mov eax, [esp+8]
+	push eax
+	call put_colorful_char
+	add esp, 8
 	ret
 
 	; 将屏幕上卷一行，光标的绝对位置不变
@@ -169,6 +227,7 @@ get_cursor_value:
 	pop dx
 	ret
 
+	; 获得光标的h坐标与w坐标
 get_cursor:
 	pushad
 	; 获取光标位置索引
@@ -186,6 +245,7 @@ get_cursor:
 	popad
 	ret
 
+	; 设置光标的h坐标和w坐标
 set_cursor:
 	pushad
 	; 获取输入h（eax），w（ecx）
@@ -205,6 +265,7 @@ set_cursor_done:
 	popad
 	ret
 
+	; 字符串打印
 put_str:
 	push esi
 	push ebx

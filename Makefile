@@ -1,5 +1,5 @@
 CASM = nasm
-CC = gcc-4.4 -m32 -c 
+CC = gcc-4.4 -m32 -I include -fno-builtin -c 
 LINK = ld -m elf_i386 -Ttext 0x7E00 -e main
 OBJCOPY = objcopy -O binary
 
@@ -10,7 +10,7 @@ IMAGE_SIZE = 60
 #各部分长度
 MBR_COUNT = 1
 LOADER_COUNT = 4
-KERNEL_COUNT = 16
+KERNEL_COUNT = 32
 
 #偏移量
 SEEK = 0
@@ -27,14 +27,23 @@ image: $(IMAGE_NAME).img mbr.bin loader.bin kernel.bin
 	@echo "当前共使用磁盘空间：$(SEEK)块"
 	@echo "\n使用以下命令运行bochs查看镜像运行结果: \n  bochs -f bochsrc -q"
 
-kernel.bin: kernel/main.c print.o
-	$(CC) -I include kernel/main.c -o main.o
-	$(LINK) main.o print.o -o kernel.elf
+kernel.bin: kernel/main.c print.o kernel.o interrupt.o init.o
+	$(CC) kernel/main.c -o main.o
+	$(LINK) main.o print.o kernel.o interrupt.o init.o -o kernel.elf
 	$(OBJCOPY) kernel.elf kernel.bin
 
 #编译lib
 print.o: lib/print.asm include/print.h
 	$(CASM) -f elf32 -o print.o lib/print.asm
+
+kernel.o: lib/kernel.asm
+	$(CASM) -f elf32 -o kernel.o lib/kernel.asm
+
+interrupt.o: lib/interrupt.c include/interrupt.h lib/kernel.asm
+	$(CC) lib/interrupt.c -o interrupt.o
+
+init.o: lib/init.c include/init.h
+	$(CC) lib/init.c -o init.o
 
 #生成镜像
 $(IMAGE_NAME).img:
