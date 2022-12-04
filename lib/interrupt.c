@@ -12,8 +12,6 @@
 #define PIC_S_CTRL 0xa0
 #define PIC_S_DATA 0xa1
 
-typedef void *intr_handler;
-
 // 各中断名称
 char *intr_name[IDT_DESC_CNT];
 
@@ -96,6 +94,7 @@ static void idt_desc_init() {
 	put_str("idt desc init end\n");
 }
 
+// 初始化PIC
 static void pic_init() {
 	put_str("pic init start\n");
 	// 初始化主片
@@ -129,4 +128,38 @@ void idt_init() {
 	uint64_t idt_ptr = (sizeof(idt) - 1) | (((uint64_t)((int32_t)idt)) << 16);
 	asm volatile("lidt %0"::"m"(idt_ptr));
 	put_str("idt init end\n");
+}
+
+// IF在eflags中的位置
+#define EFLAGES_IF 0x200
+
+// 获取当前中断状态
+enum intr_status intr_get_status() {
+	uint32_t status = 0;
+	asm volatile("pushfl; \
+				popl %0":"=g"(status));
+	return (status & EFLAGES_IF) ? INTR_ON : INTR_OFF;
+}
+
+// 设置当前中断状态
+enum intr_status intr_set_status(enum intr_status status) {
+	return (status == INTR_ON) ? intr_enable() : intr_disable();
+}
+
+// 打开中断
+enum intr_status intr_enable() {
+	enum intr_status status = intr_get_status();
+	if(status != INTR_ON) {
+		asm volatile("sti");
+	}
+	return status;
+}
+
+// 关闭中断
+enum intr_status intr_disable() {
+	enum intr_status status = intr_get_status();
+	if(status != INTR_OFF) {
+		asm volatile("cli":::"memory");
+	}
+	return status;
 }
