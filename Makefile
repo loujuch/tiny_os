@@ -28,9 +28,9 @@ image: $(IMAGE_NAME).img mbr.bin loader.bin kernel.bin
 	@echo "当前共使用磁盘空间：$(SEEK)块"
 	@echo "\n使用以下命令运行bochs查看镜像运行结果: \n  bochs -f bochsrc -q"
 
-kernel.bin: kernel/main.c print.o kernel.o interrupt.o init.o timer.o debug.o
+kernel.bin: kernel/main.c print.o kernel.o interrupt.o init.o timer.o debug.o string.o
 	$(CC) kernel/main.c -o main.o
-	$(LINK) main.o print.o kernel.o interrupt.o init.o timer.o debug.o -o kernel.elf
+	$(LINK) main.o print.o kernel.o interrupt.o init.o timer.o debug.o string.o -o kernel.elf
 	$(OBJCOPY) kernel.elf kernel.bin
 
 #编译lib
@@ -51,6 +51,9 @@ timer.o: lib/timer.c include/timer.h
 
 debug.o: lib/debug.c include/debug.h
 	$(CC) lib/debug.c -o debug.o
+
+string.o: lib/string.c include/string.h
+	$(CC) lib/string.c -o string.o
 
 #生成镜像
 $(IMAGE_NAME).img:
